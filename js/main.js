@@ -51,6 +51,7 @@ function loadDataFromStorage() {
 
   if (data !== null) {
     for (const book of data) {
+      book.year = parseInt(book.year, 10);
       books.push(book);
     }
   }
@@ -61,11 +62,11 @@ function loadDataFromStorage() {
 function addBook() {
   const title = document.getElementById("bookFormTitle").value;
   const author = document.getElementById("bookFormAuthor").value;
-  const year = document.getElementById("bookFormYear").value;
-  const isCompleted = document.getElementById("bookFormIsComplete").checked;
+  const year = parseInt(document.getElementById("bookFormYear").value, 10);
+  const isComplete = document.getElementById("bookFormIsComplete").checked;
 
   const generatedID = generateId();
-  const booksObject = generateBooksObject(generatedID, title, author, year, isCompleted);
+  const booksObject = generateBooksObject(generatedID, title, author, year, isComplete);
   books.push(booksObject);
 
   clearForm();
@@ -77,13 +78,13 @@ function generateId() {
   return +new Date();
 }
 
-function generateBooksObject(id, title, author, year, isCompleted) {
+function generateBooksObject(id, title, author, year, isComplete) {
   return {
     id,
     title,
     author,
     year,
-    isCompleted,
+    isComplete,
   };
 }
 
@@ -97,7 +98,7 @@ document.addEventListener(RENDER_EVENT, function () {
 
   for (const bookItem of books) {
     const bookElement = makebooks(bookItem);
-    if (!bookItem.isCompleted) {
+    if (!bookItem.isComplete) {
       unCompleted.append(bookElement);
     } else {
       Completed.append(bookElement);
@@ -130,7 +131,7 @@ function makebooks(booksObject) {
   // Append the elements to the book container
   bookContainer.append(bookTitle, bookAuthor, bookYear);
 
-  if (booksObject.isCompleted) {
+  if (booksObject.isComplete) {
     const editButton = document.createElement("button");
     editButton.classList.add("edit_btn");
     editButton.setAttribute("data-testid", "bookItemEditButton");
@@ -151,7 +152,17 @@ function makebooks(booksObject) {
       deleteButtonBooks(booksObject.id);
     });
 
-    bookContainer.append(editButton, deleteButton);
+    const undoButton = document.createElement("button");
+    undoButton.classList.add("undo_btn");
+    undoButton.setAttribute("data-testid", "bookItemUndoButton");
+    undoButton.innerHTML = '<i class="bi bi-arrow-clockwise" style="margin-right: 8px"></i>Belum Dibaca';
+    undoButton.style.visibility = "visible";
+
+    undoButton.addEventListener("click", function () {
+      undoButtonBooks(booksObject.id);
+    });
+
+    bookContainer.append(editButton, deleteButton, undoButton);
   } else {
     const completeButton = document.createElement("button");
     completeButton.classList.add("completed_btn");
@@ -162,7 +173,17 @@ function makebooks(booksObject) {
     completeButton.addEventListener("click", function () {
       completeButtonBooks(booksObject.id);
     });
-    bookContainer.append(completeButton);
+
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("deleted_btn");
+    deleteButton.setAttribute("data-testid", "bookItemDeleteButton");
+    deleteButton.innerHTML = '<i class="bi bi-trash3-fill" style="margin-right: 8px"></i>Hapus Buku';
+    deleteButton.style.visibility = "visible";
+
+    deleteButton.addEventListener("click", function () {
+      deleteButtonBooks(booksObject.id);
+    });
+    bookContainer.append(completeButton, deleteButton);
   }
 
   return bookContainer;
@@ -176,7 +197,7 @@ function EditButtonBooks(booksId) {
   document.getElementById("bookFormTitle").value = bookToEdit.title;
   document.getElementById("bookFormAuthor").value = bookToEdit.author;
   document.getElementById("bookFormYear").value = bookToEdit.year;
-  document.getElementById("bookFormIsComplete").checked = bookToEdit.isCompleted;
+  document.getElementById("bookFormIsComplete").checked = bookToEdit.isComplete;
 
   isEditing = true;
   editingBookId = booksId;
@@ -189,8 +210,8 @@ function updateBook(booksId) {
 
   bookTarget.title = document.getElementById("bookFormTitle").value;
   bookTarget.author = document.getElementById("bookFormAuthor").value;
-  bookTarget.year = document.getElementById("bookFormYear").value;
-  bookTarget.isCompleted = document.getElementById("bookFormIsComplete").checked;
+  bookTarget.year = parseInt(document.getElementById("bookFormYear").value, 10);
+  bookTarget.isComplete = document.getElementById("bookFormIsComplete").checked;
 
   clearForm();
   isEditing = false;
@@ -212,7 +233,7 @@ function completeButtonBooks(booksId) {
 
   if (booksTarget == null) return;
 
-  booksTarget.isCompleted = true;
+  booksTarget.isComplete = true;
   document.dispatchEvent(new Event(RENDER_EVENT));
   saveData();
 }
@@ -261,11 +282,21 @@ function searchBooks(query) {
   for (const bookItem of books) {
     if (bookItem.title.toLowerCase().includes(query)) {
       const bookElement = makebooks(bookItem);
-      if (!bookItem.isCompleted) {
+      if (!bookItem.isComplete) {
         unCompleted.append(bookElement);
       } else {
         Completed.append(bookElement);
       }
     }
   }
+}
+
+function undoButtonBooks(booksId) {
+  const booksTarget = findBooks(booksId);
+
+  if (booksTarget == null) return;
+
+  booksTarget.isComplete = false;
+  document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }

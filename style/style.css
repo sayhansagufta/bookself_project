@@ -208,6 +208,20 @@ input[type="number"] {
   visibility: hidden;
 }
 
+.undo_btn {
+  max-width: max-content;
+  font-family: "Roboto", sans-serif;
+  border-radius: 16px;
+  padding: 12px 24px;
+  border: 2px solid #a594f9;
+  color: black;
+  font-size: 24px;
+  margin-top: 20px;
+  align-self: flex-end;
+  cursor: pointer;
+  visibility: hidden;
+}
+
 .submit-btn:hover {
   background: #640d5f;
   color: white;
@@ -230,6 +244,11 @@ input[type="number"] {
 
 .edit_btn:hover {
   background: #ff6600;
+  color: white;
+}
+
+.undo_btn:hover {
+  background: #a594f9;
   color: white;
 }
 
